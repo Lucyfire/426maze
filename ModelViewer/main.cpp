@@ -21,24 +21,18 @@ float aspect = 1;
 
 const float PI = 3.1415926535897932384626433832795028;
 const float epsilon = 0.001;
-float p1_x = -35;		// starting_position of plane 1;
-float p2_x = -35;		// starting_position of plane 2;
-float s_x = 25;			// starting position of sun x-axis
-float s_y = 27;			// starting position of sun y-axis
-int rotation = 0;		// rotation counter for the sun
-float speed1 = rand() % 100 / 100.0;
-//float speed2 = rand() % 100 / 100.0;
-float speed2 = 0;
-float acceleration = 1;
 
-int camera_y_state = 0;
-float camera_y = 1;
-float mouse_y = 0;
-float camera_zoom = 00;		//prev was 90 GP
-float mouse_scroll = 0;
-int player[2] = { 1,1 };
+const int gametime = 120;	// in seconds
+const int arraysize = 11;	// initial maze size
+const int mazesize = arraysize * arraysize;	// maze size
 
-const int arraysize = 11;
+int player[2] = { 1,1 };	// player starting position
+int trophy[2] = { mazesize - 2,mazesize - 2 };
+//int trophy[2] = { 2,1 };
+bool game_status = 1;		// 1 is playing, 0 is gameover
+int game_elapsed_time = 0;
+
+
 
 bool lilmaze[arraysize][arraysize] = {
 	{1,1,1,1,1,0,1,1,1,1,1},//1
@@ -54,7 +48,7 @@ bool lilmaze[arraysize][arraysize] = {
 	{ 1,0,1,0,1,0,1,0,1,0,1 },//11
 };
 
-bool maze[arraysize*arraysize][arraysize*arraysize];
+bool maze[mazesize][mazesize];
 
 
 //makes maze by placing small mazes together
@@ -62,21 +56,31 @@ void makemaze() {
 	int side = 0;
 	side = rand() % 4 + 1;		//dont need it for now
 
-	for (int i = 0; i < arraysize*arraysize; i++) {
-		for (int j = 0; j < arraysize*arraysize; j++) {
+	for (int i = 0; i < mazesize; i++) {
+		for (int j = 0; j < mazesize; j++) {
 
 			maze[i][j] = lilmaze[i % arraysize][j % arraysize];
 			
-			if ((i == 0)||(i == arraysize*arraysize)) {
+			if ((i == 0)||(i == mazesize)) {
 				maze[i][j] = 1;
 			}
-			if ((j == 0) || (j == arraysize*arraysize)) {
+			if ((j == 0) || (j == mazesize)) {
 				maze[i][j] = 1;
 			}
 			maze[6][0] = 0;												//start
-			maze[arraysize*arraysize - 5][arraysize*arraysize] = 0;		//finish
+			maze[mazesize - 5][mazesize] = 0;		//finish
 		}
 	}
+
+	// make all outer edges walls
+	for (int i = 0; i < mazesize; i++) {
+		maze[0][i] = 1;
+		maze[i][0] = 1;
+		maze[mazesize - 1][i] = 1;
+		maze[i][mazesize - 1] = 1;
+
+	}
+
 }
 
 GLfloat sun_light_ambient_diffuse[] = { 1.0, 1.0, 0.0, 0.5 };
@@ -90,26 +94,22 @@ void reshape(int w,int h);
 void keyboard(unsigned char key, int x, int y);
 void special_keys(int a_keys, int x, int y);
 void drawAxes();
+void initGame();
 void create_square(float x,float y, float size, int v);
-void create_player();
+void create_player(float size, float sq_size, float s_x, float s_y);
+void create_trophy(float size, float sq_size, float s_x, float s_y);
+
+void initGame() {
+	player[0] = player[1] = 1;
+	trophy[0] = trophy[1] = mazesize - 2;
+	game_status = 1;		// 1 is playing, 0 is gameover
+	game_elapsed_time = 0;
+}
 
 void initLights(void) {
 
 	//glEnable(GL_LIGHT0);							   // Quick And Dirty Lighting (Assumes Light0 Is Set Up)
 	
-	
-	//glLightfv(GL_LIGHT1, GL_AMBIENT, light_ambient);
-
-	// sun
-	glLightfv(GL_LIGHT7, GL_AMBIENT_AND_DIFFUSE, sun_light_ambient_diffuse);
-	glLightfv(GL_LIGHT7, GL_SPECULAR, sun_light_specular);
-	
-	glEnable(GL_LIGHT1);		// plane 1
-	glEnable(GL_LIGHT2);		// plane 1
-	glEnable(GL_LIGHT3);		// plane 2
-	glEnable(GL_LIGHT4);		// plane 2
-
-	glEnable(GL_LIGHT7);		// sun
 	glEnable(GL_LIGHTING);							   // Enable Lighting
 }
 
@@ -192,6 +192,7 @@ void special_keys(int a_keys, int x, int y)
 {
 	//printf("key: %d x: %d y: %d", a_keys, x, y);
 	//printf("key: %d", maze[player[0]][player[1] + 1]);
+
 	switch (a_keys) {
 		case GLUT_KEY_F1:
 			// We Can Switch Between Windowed Mode And Fullscreen Mode Only
@@ -205,24 +206,36 @@ void special_keys(int a_keys, int x, int y)
 			}
 		break;
 		case GLUT_KEY_F2:
-			
+			initGame();
 			break;
 		case GLUT_KEY_UP:
+			if (game_status == 0) {
+				return;
+			}
 			if (maze[player[0] - 1][player[1]] != 1) {
 				player[0]--;
 			}
 			break;
 		case GLUT_KEY_DOWN:
+			if (game_status == 0) {
+				return;
+			}
 			if (maze[player[0] + 1][player[1]] != 1) {
 				player[0]++;
 			}
 			break;
 		case GLUT_KEY_LEFT:
+			if (game_status == 0) {
+				return;
+			}
 			if (maze[player[0]][player[1] - 1] != 1) {
 				player[1]--;
 			}
 			break;
 		case GLUT_KEY_RIGHT:
+			if (game_status == 0) {
+				return;
+			}
 			if (maze[player[0]][player[1] + 1] != 1) {
 				player[1]++;
 			}
@@ -255,6 +268,24 @@ void create_player(float size,float sq_size,float s_x, float s_y) {
 	glPushMatrix();
 		glTranslatef(x, y, 0);
 		glutSolidSphere(size, 50, 50);
+	glPopMatrix();
+}
+
+void create_trophy(float size, float sq_size, float s_x, float s_y) {
+	float x = s_x + sq_size * trophy[1];
+	float y = s_y - sq_size * trophy[0];
+	glColor3f(50.0f, 0.0f, 100.0f);
+	glPushMatrix();
+		glTranslatef(x, y, 0);
+		glutSolidSphere(size, 50, 50);
+	glPopMatrix();
+}
+
+void create_timeblock(float x, float y, float size) {
+	glColor3f(0.0f, 0.0f, 100.0f);
+	glPushMatrix();
+		glTranslatef(x, y, 0);
+		glutSolidCube(size);
 	glPopMatrix();
 }
 
@@ -293,8 +324,22 @@ int main(int argc, char** argv){
 
 // Our Rendering Is Done Here
 int timer = 0;
+int temp_time = 0;
 void render(void)   
 {
+	int  ct = glutGet(GLUT_ELAPSED_TIME);
+	ct = ct / 1000;
+	if ( game_status == 1 && ct > temp_time) {
+		temp_time = ct;
+		game_elapsed_time++;
+		printf("time: %d\n", game_elapsed_time);
+	}
+	if (game_elapsed_time > gametime) {
+		game_status = 0;
+	}
+	if (player[0] == trophy[0] && player[1] == trophy[1]) {
+		game_status = 0;
+	}
 	srand(time(NULL));
 	//timer++;
 	//printf("timer: %d | %d\n", time,timer);
@@ -310,6 +355,8 @@ void render(void)
 	float s_y = 300.0;	// starting y position of maze bottom-left
 	float size = 5.0;		// size of each cube of maze;
 	float p_size = 2;		// size of player;
+	float t_size = 2.3;		// size of trophy;
+	float tb_size = 20;	// size of time block;
 
 	// Big Black Cube for background
 	/*glPushMatrix();
@@ -326,6 +373,20 @@ void render(void)
 		}
 	}
 	create_player(p_size,size,s_x,s_y);
+	create_trophy(t_size, size, s_x, s_y);
+
+	const int time_per_cube = 10;
+
+	int number_of_blocks = gametime / time_per_cube;
+	number_of_blocks -= game_elapsed_time / time_per_cube;
+	for (int i = 0; i < number_of_blocks; i++) {
+		float tb_x = s_x + tb_size * 2 * i;
+		tb_x += 100;
+		float tb_y = s_y + 20;
+		
+		create_timeblock(tb_x, tb_y,tb_size);
+	}
+	
 
 	glLoadIdentity();
 
