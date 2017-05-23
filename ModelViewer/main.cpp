@@ -34,31 +34,53 @@ float acceleration = 1;
 int camera_y_state = 0;
 float camera_y = 1;
 float mouse_y = 0;
-float camera_zoom = 90;
+float camera_zoom = 00;		//prev was 90 GP
 float mouse_scroll = 0;
 int player[2] = { 1,1 };
 
+const int arraysize = 11;
 
-int maze[10][13] ={
-	{ 1,1,1,1,1,1,1,1,1,1,1,1,1 },
-	{ 1,0,1,0,1,0,1,0,0,0,0,0,1 },
-	{ 1,0,1,0,0,0,1,0,1,1,1,0,1 },
-	{ 1,0,0,0,1,1,1,0,0,0,0,0,1 },
-	{ 1,0,1,0,0,0,0,0,1,1,1,0,1 },
-	{ 1,0,1,0,1,1,1,0,1,0,0,0,1 },
-	{ 1,0,1,0,1,0,0,0,1,1,1,0,1 },
-	{ 1,0,1,0,1,1,1,0,1,0,1,0,1 },
-	{ 1,0,0,0,0,0,0,0,0,0,1,0,1 },
-	{ 1,1,1,1,1,1,1,1,1,1,1,1,1 }
+bool lilmaze[arraysize][arraysize] = {
+	{1,1,1,1,1,0,1,1,1,1,1},//1
+	{1,0,0,0,0,0,0,0,0,0,0},
+	{1,0,1,1,1,1,1,1,0,1,1},
+	{1,0,0,0,0,0,0,1,0,0,0 },
+	{ 1,1,1,1,0,1,1,1,1,0,1 },
+	{ 0,0,0,0,0,1,0,0,0,0,0 },//6
+	{ 1,0,1,0,1,1,1,1,0,1,1 },
+	{ 1,0,1,0,0,0,1,0,0,0,0 },
+	{ 1,0,1,1,1,0,0,0,1,1,1 },
+	{ 1,0,0,0,1,0,1,0,0,0,0 },
+	{ 1,0,1,0,1,0,1,0,1,0,1 },//11
 };
+
+bool maze[arraysize*arraysize][arraysize*arraysize];
+
+
+//makes maze by placing small mazes together
+void makemaze() {
+	int side = 0;
+	side = rand() % 4 + 1;		//dont need it for now
+
+	for (int i = 0; i < arraysize*arraysize; i++) {
+		for (int j = 0; j < arraysize*arraysize; j++) {
+
+			maze[i][j] = lilmaze[i % arraysize][j % arraysize];
+			
+			if ((i == 0)||(i == arraysize*arraysize)) {
+				maze[i][j] = 1;
+			}
+			if ((j == 0) || (j == arraysize*arraysize)) {
+				maze[i][j] = 1;
+			}
+			maze[6][0] = 0;												//start
+			maze[arraysize*arraysize - 5][arraysize*arraysize] = 0;		//finish
+		}
+	}
+}
 
 GLfloat sun_light_ambient_diffuse[] = { 1.0, 1.0, 0.0, 0.5 };
 GLfloat sun_light_specular[] = { 1.0, 1.0, 0.0, 0.5 };
-
-GLfloat plane_light_ambient_diffuse[] = { 1.0, 1.0, 1.0, 0.5 };
-GLfloat plane_light_specular[] = { 1.0, 1.0, 1.0, 0.5 };
-
-
 
 //Function Prototypes
 void render(void);
@@ -77,26 +99,10 @@ void initLights(void) {
 	
 	
 	//glLightfv(GL_LIGHT1, GL_AMBIENT, light_ambient);
-	
-
-	// plane 1
-	glLightfv(GL_LIGHT1, GL_AMBIENT_AND_DIFFUSE, plane_light_ambient_diffuse);
-	glLightfv(GL_LIGHT1, GL_SPECULAR, plane_light_specular);
-	glLightfv(GL_LIGHT2, GL_AMBIENT_AND_DIFFUSE, plane_light_ambient_diffuse);
-	glLightfv(GL_LIGHT2, GL_SPECULAR, plane_light_specular);
-
-	// plane 2
-	glLightfv(GL_LIGHT3, GL_AMBIENT_AND_DIFFUSE, plane_light_ambient_diffuse);
-	glLightfv(GL_LIGHT3, GL_SPECULAR, plane_light_specular);
-	glLightfv(GL_LIGHT4, GL_AMBIENT_AND_DIFFUSE, plane_light_ambient_diffuse);
-	glLightfv(GL_LIGHT5, GL_SPECULAR, plane_light_specular);
-
 
 	// sun
 	glLightfv(GL_LIGHT7, GL_AMBIENT_AND_DIFFUSE, sun_light_ambient_diffuse);
 	glLightfv(GL_LIGHT7, GL_SPECULAR, sun_light_specular);
-
-	
 	
 	glEnable(GL_LIGHT1);		// plane 1
 	glEnable(GL_LIGHT2);		// plane 1
@@ -126,7 +132,6 @@ bool init(void)
 	glFrontFace(GL_CCW);                               //Counter Clock Wise definition of the front and back side of faces
 	glCullFace(GL_BACK);                               //Hide the back side
 	
-
 	return true;
 }
 
@@ -135,13 +140,13 @@ void positionCamera(){
 	glMatrixMode(GL_PROJECTION);     // Select The Projection Matrix
 
 	glLoadIdentity();                // Reset The Projection Matrix
-	gluPerspective(45.0f, aspect, 0.1, 100.0);  // was 90.0f x
-	gluLookAt(0.0f,0.0f,90.0f,
-				0.0f,1.0f,0.0f,
-				0.0f,1.0f,0.0f);
+	gluPerspective(60.0f, aspect, 0.1, 100.0);  // was 90.0f x		was 45 now 60 GP
+	gluLookAt(0.0f, 0.0f, 100.0f,
+		0.0f, 0.0f, 0.0f,
+		0.0f, 1.0f, 0.0f);
 	
 	//camera transformations go here
-
+	
 	glMatrixMode(GL_MODELVIEW);      // Select The Modelview Matrix
 
 }
@@ -185,9 +190,6 @@ void keyboard(unsigned char key, int x, int y)
 // Our Keyboard Handler For Special Keys (Like Arrow Keys And Function Keys)
 void special_keys(int a_keys, int x, int y)
 {
-
-	
-
 	//printf("key: %d x: %d y: %d", a_keys, x, y);
 	//printf("key: %d", maze[player[0]][player[1] + 1]);
 	switch (a_keys) {
@@ -256,12 +258,12 @@ void create_player(float size,float sq_size,float s_x, float s_y) {
 	glPopMatrix();
 }
 
-
-
 // Main Function For Bringing It All Together.
 int main(int argc, char** argv){
 	glutInit(&argc, argv);								// GLUT Initializtion
 	glutInitDisplayMode(GLUT_DEPTH | GLUT_RGBA | GLUT_DOUBLE); // (CHANGED)|
+	makemaze();
+
 	if (g_gamemode) {
 		glutGameModeString("1024x768:32");				// Select 1024x768 In 32bpp Mode
 		if (glutGameModeGet(GLUT_GAME_MODE_POSSIBLE))
@@ -279,8 +281,6 @@ int main(int argc, char** argv){
 		return -1;
 	}
 	
-	
-	
 	glutDisplayFunc(render);							// Register The Display Function
 	glutReshapeFunc(reshape);							// Register The Reshape Handler
 	glutKeyboardFunc(keyboard);							// Register The Keyboard Handler
@@ -292,11 +292,12 @@ int main(int argc, char** argv){
 
 
 // Our Rendering Is Done Here
-
+int timer = 0;
 void render(void)   
 {
 	srand(time(NULL));
-	
+	//timer++;
+	//printf("timer: %d | %d\n", time,timer);
 	
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	// Clear The Screen And The Depth Buffer
 
@@ -317,21 +318,16 @@ void render(void)
 		glutSolidCube(100);
 	glPopMatrix();*/
 
-	for (int i = 0; i < 10; i++) {
-		for (int j = 0; j < 13; j++) {
+	for (int i = 0; i < arraysize*arraysize; i++) {
+		for (int j = 0; j < arraysize*arraysize; j++) {
 			float sq_x = s_x + size * j;	// this square x position
 			float sq_y = s_y - size * i;	// this square y position
 			create_square(sq_x, sq_y, size, maze[i][j]);
-
 		}
 	}
 	create_player(p_size,size,s_x,s_y);
-	
 
 	glLoadIdentity();
-
-	
-	
 
     // Swap The Buffers To Make Our Rendering Visible
     glutSwapBuffers();
