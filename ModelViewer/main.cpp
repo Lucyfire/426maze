@@ -140,8 +140,8 @@ void positionCamera(){
 	glMatrixMode(GL_PROJECTION);     // Select The Projection Matrix
 
 	glLoadIdentity();                // Reset The Projection Matrix
-	gluPerspective(60.0f, aspect, 0.1, 100.0);  // was 90.0f x		was 45 now 60 GP
-	gluLookAt(0.0f, 0.0f, 100.0f,
+	gluPerspective(60.0f, aspect, 10.1, 600.0);  // was 90.0f x		was 45 now 60 GP
+	gluLookAt(0.0f, 0.0f, 600.0f,
 		0.0f, 0.0f, 0.0f,
 		0.0f, 1.0f, 0.0f);
 	
@@ -306,8 +306,8 @@ void render(void)
 		glEnable(GL_CULL_FACE);
 	else
 		glDisable(GL_CULL_FACE);
-	float s_x = -30.0;	// starting x position of maze bottom-left
-	float s_y = 25.0;	// starting y position of maze bottom-left
+	float s_x = -300.0;	// starting x position of maze bottom-left
+	float s_y = 300.0;	// starting y position of maze bottom-left
 	float size = 5.0;		// size of each cube of maze;
 	float p_size = 2;		// size of player;
 
