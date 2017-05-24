@@ -25,14 +25,16 @@ const float epsilon = 0.001;
 const int gametime = 120;	// in seconds
 const int arraysize = 11;	// initial maze size
 const int mazesize = arraysize * arraysize;	// maze size
-
+/*
 int player[2] = { 1,1 };	// player starting position
 int trophy[2] = { mazesize - 2,mazesize - 2 };
-//int trophy[2] = { 2,1 };
+
+*/
+int player[2] =  { 6,0 };	// player starting position
+int trophy[2] ={ mazesize - 6, mazesize - 1 };
+
 bool game_status = 1;		// 1 is playing, 0 is gameover
 int game_elapsed_time = 0;
-
-
 
 bool lilmaze[arraysize][arraysize] = {
 	{1,1,1,1,1,0,1,1,1,1,1},//1
@@ -49,38 +51,46 @@ bool lilmaze[arraysize][arraysize] = {
 };
 
 bool maze[mazesize][mazesize];
-
-
 //makes maze by placing small mazes together
 void makemaze() {
 	int side = 0;
-	side = rand() % 4 + 1;		//dont need it for now
 
 	for (int i = 0; i < mazesize; i++) {
 		for (int j = 0; j < mazesize; j++) {
+			side = rand() % 4 + 1;
 
-			maze[i][j] = lilmaze[i % arraysize][j % arraysize];
-			
-			if ((i == 0)||(i == mazesize)) {
+			if (side == 1) {
+				//	maze[i][j] = lilmaze[j % arraysize][i % arraysize];
+				maze[i][j] = lilmaze[i % arraysize][j % arraysize];
+			}
+			else if (side == 2) {
+				maze[i][j] = lilmaze[i % arraysize][j % arraysize];
+			}
+			else if (side == 3) {
+				maze[i][j] = lilmaze[(mazesize)-(i % arraysize)][(mazesize)-(j % arraysize)];
+			}
+			else if (side == 4) {
+				maze[i][j] = lilmaze[i % arraysize][j % arraysize];
+			}
+			//maze[i][j] = lilmaze[i % arraysize][j % arraysize];
+
+			if ((i == 0) || (i == mazesize)) {
 				maze[i][j] = 1;
 			}
 			if ((j == 0) || (j == mazesize)) {
 				maze[i][j] = 1;
 			}
-			maze[6][0] = 0;												//start
-			maze[mazesize - 5][mazesize] = 0;		//finish
-		}
+		}	
 	}
-
 	// make all outer edges walls
 	for (int i = 0; i < mazesize; i++) {
 		maze[0][i] = 1;
 		maze[i][0] = 1;
 		maze[mazesize - 1][i] = 1;
 		maze[i][mazesize - 1] = 1;
-
 	}
-
+	maze[6][0] = 0;										//start
+	maze[mazesize - 6][mazesize - 1] = 0;				//finish
 }
 
 GLfloat sun_light_ambient_diffuse[] = { 1.0, 1.0, 0.0, 0.5 };
@@ -101,7 +111,9 @@ void create_trophy(float size, float sq_size, float s_x, float s_y);
 
 void initGame() {
 	player[0] = player[1] = 1;
-	trophy[0] = trophy[1] = mazesize - 2;
+
+	
+	//trophy[0] = trophy[1] = mazesize - 2;
 	game_status = 1;		// 1 is playing, 0 is gameover
 	game_elapsed_time = 0;
 }
