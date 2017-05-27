@@ -6,7 +6,6 @@
 #include <ctime>
 
 
-
 // The Following Directive Fixes The Problem With Extra Console Window
 //#pragma comment(linker, "/subsystem:\"windows\" /entry:\"mainCRTStartup\"")
 
@@ -37,10 +36,10 @@ bool game_status = 1;		// 1 is playing, 0 is gameover
 int game_elapsed_time = 0;
 
 bool lilmaze[arraysize][arraysize] = {
-	{1,1,1,1,1,0,1,1,1,1,1},//1
-	{1,0,0,0,0,0,0,0,0,0,0},
-	{1,0,1,1,1,1,1,1,0,1,1},
-	{1,0,0,0,0,0,0,1,0,0,0 },
+	{ 1,1,1,1,1,0,1,1,1,1,1 },//1
+	{ 1,0,0,0,0,0,0,0,0,0,0 },
+	{ 1,0,1,1,1,1,1,1,0,1,1 },
+	{ 1,0,0,0,0,0,0,1,0,0,0 },
 	{ 1,1,1,1,0,1,1,1,1,0,1 },
 	{ 0,0,0,0,0,1,0,0,0,0,0 },//6
 	{ 1,0,1,0,1,1,1,1,0,1,1 },
@@ -49,6 +48,8 @@ bool lilmaze[arraysize][arraysize] = {
 	{ 1,0,0,0,1,0,1,0,0,0,0 },
 	{ 1,0,1,0,1,0,1,0,1,0,1 },//11
 };
+
+
 
 bool maze[mazesize][mazesize];
 //makes maze by placing small mazes together
@@ -92,9 +93,6 @@ void makemaze() {
 	maze[6][0] = 0;										//start
 	maze[mazesize - 6][mazesize - 1] = 0;				//finish
 }
-
-GLfloat sun_light_ambient_diffuse[] = { 1.0, 1.0, 0.0, 0.5 };
-GLfloat sun_light_specular[] = { 1.0, 1.0, 0.0, 0.5 };
 
 //Function Prototypes
 void render(void);
@@ -277,6 +275,11 @@ void create_player(float size,float sq_size,float s_x, float s_y) {
 	float x = s_x + sq_size * player[1];
 	float y = s_y - sq_size * player[0];
 	glColor3f(0.0f, 0.0f, 0.0f);
+	GLfloat player_mat_ambient_diffuse[] = { 1.0, 0.9, 1.0, 1.0 };
+	GLfloat player_mat_specular[] = { 1.0, 0.9, 1.0, 1.0 };
+
+	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, player_mat_ambient_diffuse);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, player_mat_specular);
 	glPushMatrix();
 		glTranslatef(x, y, 0);
 		glutSolidSphere(size, 50, 50);
@@ -287,6 +290,11 @@ void create_trophy(float size, float sq_size, float s_x, float s_y) {
 	float x = s_x + sq_size * trophy[1];
 	float y = s_y - sq_size * trophy[0];
 	glColor3f(50.0f, 0.0f, 100.0f);
+	GLfloat trophy_mat_ambient_diffuse[] = { 1.0, 0.0, 0.0, 1.0 };
+	GLfloat trophy_mat_specular[] = { 1.0, 0.0, 0.0, 1.0 };
+
+	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, trophy_mat_ambient_diffuse);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, trophy_mat_specular);
 	glPushMatrix();
 		glTranslatef(x, y, 0);
 		glutSolidSphere(size, 50, 50);
@@ -323,6 +331,7 @@ int main(int argc, char** argv){
 		fprintf(stderr,"Initialization failed.");
 		return -1;
 	}
+
 	
 	glutDisplayFunc(render);							// Register The Display Function
 	glutReshapeFunc(reshape);							// Register The Reshape Handler
