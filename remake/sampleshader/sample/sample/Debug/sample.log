@@ -1,0 +1,6 @@
+﻿  main.cpp
+c:\users\mchris68\desktop\sampleshader - copy\sampleshader\sample\sample\main.cpp(263): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\stdio.h(205): note: see declaration of 'fopen'
+c:\users\mchris68\desktop\sampleshader - copy\sampleshader\sample\sample\main.cpp(542): warning C4838: conversion from 'double' to 'GLfloat' requires a narrowing conversion
+c:\users\mchris68\desktop\sampleshader - copy\sampleshader\sample\sample\main.cpp(543): warning C4838: conversion from 'double' to 'GLfloat' requires a narrowing conversion
+  sample.vcxproj -> C:\Users\mchris68\Desktop\sampleshader - Copy\sampleshader\sample\Debug\sample.exe
