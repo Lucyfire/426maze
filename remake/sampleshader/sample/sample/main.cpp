@@ -101,7 +101,15 @@ GLint loc;
 
 const int gametime = 120;	// in seconds
 const int arraysize = 11;	// initial maze size
-const int mazesize = arraysize * arraysize;	// maze size
+const int mazesize = arraysize * 5;	// maze size
+
+float s_x = -150.0;	// -300 starting x position of maze bottom-left
+float s_y = 150.0;	// 300 starting y position of maze bottom-left
+float size = 5.0;		// size of each cube of maze;
+float p_size = 2;		// size of player;
+float t_size = 2.3;		// size of trophy;
+float tb_size = 10;	// size of time block;
+
 
 int player[2] =  { 6,0 };	// player starting position
 int trophy[2] ={ mazesize - 6, mazesize - 1 };
@@ -141,8 +149,8 @@ void positionCamera(){
 	glMatrixMode(GL_PROJECTION);     // Select The Projection Matrix
 
 	glLoadIdentity();                // Reset The Projection Matrix
-	gluPerspective(60.0f, aspect, 10.1, 600.0);  // was 90.0f x		was 45 now 60 GP
-	gluLookAt(0.0f, 0.0f, 600.0f,
+	gluPerspective(60.0f, aspect, 10.1, 330.0);  // was 90.0f x		was 45 now 60 GP
+	gluLookAt(0.0f, 0.0f, 330.0f,
 		0.0f, 0.0f, 0.0f,
 		0.0f, 1.0f, 0.0f);
 	
@@ -214,7 +222,7 @@ void loadTextureWalkShader() {
 GLuint wallTexture;
 GLuint wallTexture_location;
 void loadTextureWallShader() {
-	wallTexture = LoadTexture("crate.bmp",512,512);
+	wallTexture = LoadTexture("wall.bmp",50,50);
 }
 
 /***************************** END TEXTURES ***************************************************************/
@@ -494,18 +502,12 @@ void renderScene(void){
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
 
-	float s_x = -300.0;	// -300 starting x position of maze bottom-left
-	float s_y = 300.0;	// 300 starting y position of maze bottom-left
-	float size = 5.0;		// size of each cube of maze;
-	float p_size = 2;		// size of player;
-	float t_size = 2.3;		// size of trophy;
-	float tb_size = 20;	// size of time block;
-
+	
 	// Big Black Cube for background
 	glUseProgramObjectARB(shadowShaderId);
 
 	glPushMatrix();
-		glColor3f(0.0f, 0.0f, 0.0f);
+		//glColor3f(0.0f, 0.0f, 0.0f);
 		
 	//wallTexture_location = glGetUniformLocationARB(textureShaderId, "myTexture");
 	//glActiveTextureARB(GL_TEXTURE0);
@@ -565,7 +567,7 @@ void renderScene(void){
 	number_of_blocks -= game_elapsed_time / time_per_cube;
 	for (int i = 0; i < number_of_blocks; i++) {
 		float tb_x = s_x + tb_size * 2 * i;
-		tb_x += 100;
+		tb_x += 25;
 		float tb_y = s_y + 20;
 		
 		create_timeblock(tb_x, tb_y,tb_size);
@@ -646,12 +648,53 @@ void special_keys(int a_keys, int x, int y){
 }
 
 void create_square(float x, float y, float size, int v) {
+	glUseProgramObjectARB(textureShaderId);
 	if (v == 1) { // wall
-		glUseProgramObjectARB(shadowShaderId);
-		glColor3f(0.0f, 0.0f, 0.0f);
+		//glUseProgramObjectARB(bumpyShaderId);
+		//glColor3f(0.0f, 0.0f, 0.0f);
+
 		glPushMatrix();
-			glTranslatef(x, y, -1);
-			glutSolidCube(size);
+			//glTranslatef(x, y, -1);
+			wallTexture_location = glGetUniformLocationARB(textureShaderId, "myTexture");
+			glActiveTextureARB(GL_TEXTURE0);
+			glUniform1fARB(wallTexture_location, 0);
+			glBindTexture(GL_TEXTURE_2D, wallTexture);
+			glPushMatrix();
+			glTranslatef(x, y, 1);
+			//glTranslatef(0, 10, 0);
+			glBegin(GL_QUADS);
+			// Front Face
+			glTexCoord2f(0.0f, 0.0f); glVertex3f(-2.50f, -2.50f, 2.50f);  // Bottom Left Of The Texture and Quad
+			glTexCoord2f(1.0f, 0.0f); glVertex3f(2.50f, -2.50f, 2.50f);  // Bottom Right Of The Texture and Quad
+			glTexCoord2f(1.0f, 1.0f); glVertex3f(2.50f, 2.50f, 2.50f);  // Top Right Of The Texture and Quad
+			glTexCoord2f(0.0f, 1.0f); glVertex3f(-2.50f, 2.50f, 2.50f);  // Top Left Of The Texture and Quad
+																		 // Back Face
+			glTexCoord2f(1.0f, 0.0f); glVertex3f(-2.50f, -2.50f, -2.50f);  // Bottom Right Of The Texture and Quad
+			glTexCoord2f(1.0f, 1.0f); glVertex3f(-2.50f, 2.50f, -2.50f);  // Top Right Of The Texture and Quad
+			glTexCoord2f(0.0f, 1.0f); glVertex3f(2.50f, 2.50f, -2.50f);  // Top Left Of The Texture and Quad
+			glTexCoord2f(0.0f, 0.0f); glVertex3f(2.50f, -2.50f, -2.50f);  // Bottom Left Of The Texture and Quad
+																		  // Top Face
+			glTexCoord2f(0.0f, 1.0f); glVertex3f(-2.50f, 2.50f, -2.50f);  // Top Left Of The Texture and Quad
+			glTexCoord2f(0.0f, 0.0f); glVertex3f(-2.50f, 2.50f, 2.50f);  // Bottom Left Of The Texture and Quad
+			glTexCoord2f(1.0f, 0.0f); glVertex3f(2.50f, 2.50f, 2.50f);  // Bottom Right Of The Texture and Quad
+			glTexCoord2f(1.0f, 1.0f); glVertex3f(2.50f, 2.50f, -2.50f);  // Top Right Of The Texture and Quad
+																		 // Bottom Face
+			glTexCoord2f(1.0f, 1.0f); glVertex3f(-2.50f, -2.50f, -2.50f);  // Top Right Of The Texture and Quad
+			glTexCoord2f(0.0f, 1.0f); glVertex3f(2.50f, -2.50f, -2.50f);  // Top Left Of The Texture and Quad
+			glTexCoord2f(0.0f, 0.0f); glVertex3f(2.50f, -2.50f, 2.50f);  // Bottom Left Of The Texture and Quad
+			glTexCoord2f(1.0f, 0.0f); glVertex3f(-2.50f, -2.50f, 2.50f);  // Bottom Right Of The Texture and Quad
+																		  // Right face
+			glTexCoord2f(1.0f, 0.0f); glVertex3f(2.50f, -2.50f, -2.50f);  // Bottom Right Of The Texture and Quad
+			glTexCoord2f(1.0f, 1.0f); glVertex3f(2.50f, 2.50f, -2.50f);  // Top Right Of The Texture and Quad
+			glTexCoord2f(0.0f, 1.0f); glVertex3f(2.50f, 2.50f, 2.50f);  // Top Left Of The Texture and Quad
+			glTexCoord2f(0.0f, 0.0f); glVertex3f(2.50f, -2.50f, 2.50f);  // Bottom Left Of The Texture and Quad
+																		 // Left Face
+			glTexCoord2f(0.0f, 0.0f); glVertex3f(-2.50f, -2.50f, -2.50f);  // Bottom Left Of The Texture and Quad
+			glTexCoord2f(1.0f, 0.0f); glVertex3f(-2.50f, -2.50f, 2.50f);  // Bottom Right Of The Texture and Quad
+			glTexCoord2f(1.0f, 1.0f); glVertex3f(-2.50f, 2.50f, 2.50f);  // Top Right Of The Texture and Quad
+			glTexCoord2f(0.0f, 1.0f); glVertex3f(-2.50f, 2.50f, -2.50f);  // Top Left Of The Texture and Quad
+			glEnd();
+			//glutSolidCube(size);
 		glPopMatrix();
 	}
 	else { // walking space
@@ -708,7 +751,7 @@ void create_square(float x, float y, float size, int v) {
 void create_player(float size,float sq_size,float s_x, float s_y) {
 	float x = s_x + sq_size * player[1];
 	float y = s_y - sq_size * player[0];
-	glColor3f(0.0f, 0.0f, 0.0f);
+	//glColor3f(0.0f, 0.0f, 0.0f);
 	GLfloat player_mat_ambient_diffuse[] = { 1.0, 0.9, 1.0, 1.0 };
 	GLfloat player_mat_specular[] = { 1.0, 0.9, 1.0, 1.0 };
 
@@ -723,7 +766,7 @@ void create_player(float size,float sq_size,float s_x, float s_y) {
 void create_trophy(float size, float sq_size, float s_x, float s_y) {
 	float x = s_x + sq_size * trophy[1];
 	float y = s_y - sq_size * trophy[0];
-	glColor3f(50.0f, 0.0f, 100.0f);
+	//glColor3f(50.0f, 0.0f, 100.0f);
 	GLfloat trophy_mat_ambient_diffuse[] = { 1.0, 0.0, 0.0, 1.0 };
 	GLfloat trophy_mat_specular[] = { 1.0, 0.0, 0.0, 1.0 };
 
@@ -737,6 +780,7 @@ void create_trophy(float size, float sq_size, float s_x, float s_y) {
 
 void create_timeblock(float x, float y, float size) {
 	//glColor3f(0.0f, 0.0f, 100.0f);
+	glUseProgramObjectARB(textureShaderId);
 	glPushMatrix();
 		glTranslatef(x, y, 0);
 		glutSolidCube(size);

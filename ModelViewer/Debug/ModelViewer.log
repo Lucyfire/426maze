@@ -1,5 +1,0 @@
-﻿  main.cpp
-d:\dropbox\ucy\8o examino\epl426\assignments\project\modelviewer\main.cpp(281): warning C4838: conversion from 'double' to 'GLfloat' requires a narrowing conversion
-d:\dropbox\ucy\8o examino\epl426\assignments\project\modelviewer\main.cpp(282): warning C4838: conversion from 'double' to 'GLfloat' requires a narrowing conversion
-  ModelViewer.vcxproj -> D:\Dropbox\Ucy\8o Examino\EPL426\Assignments\Project\ModelViewer\Debug\ModelViewer.exe
-  ModelViewer.vcxproj -> D:\Dropbox\Ucy\8o Examino\EPL426\Assignments\Project\ModelViewer\Debug\ModelViewer.pdb (Full PDB)

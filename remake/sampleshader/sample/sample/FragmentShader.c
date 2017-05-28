@@ -6,9 +6,9 @@ varying float pattern;
 // uniform vec4 color1; // Ambient Color
 // uniform vec4 color2; // Specular Color: 0.8, 0.0, 0.0, 1.0
 // uniform vec3 eyePos; // Eye Position
-vec4 color0 = vec4(0.8, 0.0, 0.0, 1.0);
-vec4 color1 = vec4(0.8, 0.5, 0.0, 1.0);
-vec4 color2 = vec4(0.8, 0.1, 0.0, 1.0);
+vec4 color0 = vec4(1.0, 0.0, 0.0, 1.0);
+vec4 color1 = vec4(1.0, 0.0, 0.0, 1.0);
+vec4 color2 = vec4(1.0, 0.0, 0.0, 1.0);
 vec3 eyePos = vec3(32,20,600);
 #define shininess 10.0
 void main (void)
