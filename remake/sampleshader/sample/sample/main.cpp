@@ -80,19 +80,10 @@ void getOpenGLFunctionPointers(void){
 #define RENDER_HEIGHT 1000.0		// 480
 #define SHADOW_MAP_RATIO 2
 
+GLuint texture;
+GLuint texture_location;
+
 float aspect = 1;
-//Camera position
-float p_camera[3] = {32,20,600};
-
-//Camera lookAt
-float l_camera[3] = {0,0,600};
-
-//Light position
-float p_light[3] = {0,0,0};
-
-//Light lookAt
-float l_light[3] = {0,1,0};
-
 
 //Light mouvement circle radius
 float light_mvnt = 30.0f;
@@ -110,7 +101,7 @@ GLint loc;
 
 const int gametime = 120;	// in seconds
 const int arraysize = 11;	// initial maze size
-const int mazesize = arraysize * 5;	// maze size
+const int mazesize = arraysize * arraysize;	// maze size
 
 int player[2] =  { 6,0 };	// player starting position
 int trophy[2] ={ mazesize - 6, mazesize - 1 };
@@ -217,13 +208,13 @@ void FreeTexture(GLuint texture){
 GLuint roadTexture;
 GLuint roadTexture_location;
 void loadTextureWalkShader() {
-	roadTexture = LoadTexture("road_s.bmp",50,50);
+	roadTexture = LoadTexture("road_s.bmp",512,512);
 }
 
 GLuint wallTexture;
 GLuint wallTexture_location;
 void loadTextureWallShader() {
-	wallTexture = LoadTexture("wall_s.bmp",50,50);
+	wallTexture = LoadTexture("crate.bmp",512,512);
 }
 
 /***************************** END TEXTURES ***************************************************************/
@@ -451,8 +442,7 @@ void loadShadowShader() {
 }
 
 
-GLuint texture;
-GLuint texture_location;
+
 GLhandleARB textureShaderId;
 void loadTextureShader(){
 	GLhandleARB vertexShaderHandle;
@@ -502,22 +492,64 @@ void renderScene(void){
 
 	// Clear previous frame values
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glUseProgramObjectARB(shadowShaderId);
+	
 
-	float s_x = -300.0;	// starting x position of maze bottom-left
-	float s_y = 300.0;	// starting y position of maze bottom-left
+	float s_x = -300.0;	// -300 starting x position of maze bottom-left
+	float s_y = 300.0;	// 300 starting y position of maze bottom-left
 	float size = 5.0;		// size of each cube of maze;
 	float p_size = 2;		// size of player;
 	float t_size = 2.3;		// size of trophy;
 	float tb_size = 20;	// size of time block;
 
 	// Big Black Cube for background
-	/*glPushMatrix();
+	glUseProgramObjectARB(shadowShaderId);
+
+	glPushMatrix();
 		glColor3f(0.0f, 0.0f, 0.0f);
-		glTranslatef(0, 0, -52);
-		glutSolidCube(100);
-	glPopMatrix();*/
+		
+	//wallTexture_location = glGetUniformLocationARB(textureShaderId, "myTexture");
+	//glActiveTextureARB(GL_TEXTURE0);
+	//glUniform1fARB(wallTexture_location, 0);
+	//glBindTexture(GL_TEXTURE_2D, wallTexture);
+	glTranslatef(0, 0, -499);
+	
+	glBegin(GL_QUADS);
+
+	//glTexCoord2f(0.0f, 0.0f); glVertex3f(-500.0f, -500.0f, -500.0f);  // Bottom Left Of The Texture and Quad
+	//glTexCoord2f(1.0f, 0.0f); glVertex3f(500.0f, -500.0f, -500.0f);  // Bottom Right Of The Texture and Quad
+	//glTexCoord2f(1.0f, 1.0f); glVertex3f(500.0f, 500.0f, -500.0f);  // Top Right Of The Texture and Quad
+	//glTexCoord2f(0.0f, 1.0f); glVertex3f(-500.0f, 500.0f, -500.0f);  // Top Left Of The Texture and Quad
+	//																 // Back Face
+	//glTexCoord2f(1.0f, 0.0f); glVertex3f(-500.0f, -500.0f, -500.0f);  // Bottom Right Of The Texture and Quad
+	//glTexCoord2f(1.0f, 1.0f); glVertex3f(-500.0f, 500.0f, -500.0f);  // Top Right Of The Texture and Quad
+	//glTexCoord2f(0.0f, 1.0f); glVertex3f(500.0f, 500.0f, -500.0f);  // Top Left Of The Texture and Quad
+	//glTexCoord2f(0.0f, 0.0f); glVertex3f(500.0f, -500.0f, -500.0f);  // Bottom Left Of The Texture and Quad
+	//																 // Top Face
+	//glTexCoord2f(0.0f, 1.0f); glVertex3f(-500.0f, 500.0f, -500.0f);  // Top Left Of The Texture and Quad
+	//glTexCoord2f(0.0f, 0.0f); glVertex3f(-500.0f, 500.0f, -500.0f);  // Bottom Left Of The Texture and Quad
+	//glTexCoord2f(1.0f, 0.0f); glVertex3f(500.0f, 500.0f, -500.0f);  // Bottom Right Of The Texture and Quad
+	//glTexCoord2f(1.0f, 1.0f); glVertex3f(500.0f, 500.0f, -500.0f);  // Top Right Of The Texture and Quad
+	//																// Bottom Face
+	//glTexCoord2f(1.0f, 1.0f); glVertex3f(-500.0f, -500.0f, -500.0f);  // Top Right Of The Texture and Quad
+	//glTexCoord2f(0.0f, 1.0f); glVertex3f(500.0f, -500.0f, -500.0f);  // Top Left Of The Texture and Quad
+	//glTexCoord2f(0.0f, 0.0f); glVertex3f(500.0f, -500.0f, -500.0f);  // Bottom Left Of The Texture and Quad
+	//glTexCoord2f(1.0f, 0.0f); glVertex3f(-500.0f, -500.0f, -500.0f);  // Bottom Right Of The Texture and Quad
+	//																  // Right face
+	//glTexCoord2f(1.0f, 0.0f); glVertex3f(500.0f, -500.0f, -500.0f);  // Bottom Right Of The Texture and Quad
+	//glTexCoord2f(1.0f, 1.0f); glVertex3f(500.0f, 500.0f, -500.0f);  // Top Right Of The Texture and Quad
+	//glTexCoord2f(0.0f, 1.0f); glVertex3f(500.0f, 500.0f, -500.0f);  // Top Left Of The Texture and Quad
+	//glTexCoord2f(0.0f, 0.0f); glVertex3f(500.0f, -500.0f, -500.0f);  // Bottom Left Of The Texture and Quad
+	//																 // Left Face
+	//glTexCoord2f(0.0f, 0.0f); glVertex3f(-500.0f, -500.0f, -500.0f);  // Bottom Left Of The Texture and Quad
+	//glTexCoord2f(1.0f, 0.0f); glVertex3f(-500.0f, -500.0f, -500.0f);  // Bottom Right Of The Texture and Quad
+	//glTexCoord2f(1.0f, 1.0f); glVertex3f(-500.0f, 500.0f, -500.0f);  // Top Right Of The Texture and Quad
+	//glTexCoord2f(0.0f, 1.0f); glVertex3f(-500.0f, 500.0f, -500.0f);  // Top Left Of The Texture and Quad
+	//glEnd();
+		glutSolidCube(1000);
+		
+	glPopMatrix();
 	glUseProgramObjectARB(textureShaderId);
+	
 	for (int i = 0; i < mazesize; i++) {
 		for (int j = 0; j < mazesize; j++) {
 			float sq_x = s_x + size * j;	// this square x position
@@ -615,25 +647,57 @@ void special_keys(int a_keys, int x, int y){
 
 void create_square(float x, float y, float size, int v) {
 	if (v == 1) { // wall
-		wallTexture_location = glGetUniformLocationARB(textureShaderId, "myTexture");
-		glActiveTextureARB(GL_TEXTURE0);
-		glUniform1fARB(wallTexture_location, 0);
-		glBindTexture(GL_TEXTURE_2D, wallTexture);
-		//glColor3f(100.0f, 0.0f, 0.0f);
+		glUseProgramObjectARB(shadowShaderId);
+		glColor3f(0.0f, 0.0f, 0.0f);
 		glPushMatrix();
 			glTranslatef(x, y, -1);
-			glutSolidTeapot(size);
+			glutSolidCube(size);
 		glPopMatrix();
 	}
 	else { // walking space
 		//glColor3f(0.0f, 100.0f, 0.0f);
+		glUseProgramObjectARB(textureShaderId);
 		roadTexture_location = glGetUniformLocationARB(textureShaderId, "myTexture");
 		glActiveTextureARB(GL_TEXTURE0);
 		glUniform1fARB(roadTexture_location, 0);
 		glBindTexture(GL_TEXTURE_2D, roadTexture);
 		glPushMatrix();
-			glTranslatef(x, y, -2);
-			glutSolidTeapot(size);
+		glTranslatef(x, y, 0);
+		//glTranslatef(0, 10, 0);
+		glBegin(GL_QUADS);
+		// Front Face
+		glTexCoord2f(0.0f, 0.0f); glVertex3f(-2.50f, -2.50f, 2.50f);  // Bottom Left Of The Texture and Quad
+		glTexCoord2f(1.0f, 0.0f); glVertex3f(2.50f, -2.50f, 2.50f);  // Bottom Right Of The Texture and Quad
+		glTexCoord2f(1.0f, 1.0f); glVertex3f(2.50f, 2.50f, 2.50f);  // Top Right Of The Texture and Quad
+		glTexCoord2f(0.0f, 1.0f); glVertex3f(-2.50f, 2.50f, 2.50f);  // Top Left Of The Texture and Quad
+																	 // Back Face
+		glTexCoord2f(1.0f, 0.0f); glVertex3f(-2.50f, -2.50f, -2.50f);  // Bottom Right Of The Texture and Quad
+		glTexCoord2f(1.0f, 1.0f); glVertex3f(-2.50f, 2.50f, -2.50f);  // Top Right Of The Texture and Quad
+		glTexCoord2f(0.0f, 1.0f); glVertex3f(2.50f, 2.50f, -2.50f);  // Top Left Of The Texture and Quad
+		glTexCoord2f(0.0f, 0.0f); glVertex3f(2.50f, -2.50f, -2.50f);  // Bottom Left Of The Texture and Quad
+																	  // Top Face
+		glTexCoord2f(0.0f, 1.0f); glVertex3f(-2.50f, 2.50f, -2.50f);  // Top Left Of The Texture and Quad
+		glTexCoord2f(0.0f, 0.0f); glVertex3f(-2.50f, 2.50f, 2.50f);  // Bottom Left Of The Texture and Quad
+		glTexCoord2f(1.0f, 0.0f); glVertex3f(2.50f, 2.50f, 2.50f);  // Bottom Right Of The Texture and Quad
+		glTexCoord2f(1.0f, 1.0f); glVertex3f(2.50f, 2.50f, -2.50f);  // Top Right Of The Texture and Quad
+																	 // Bottom Face
+		glTexCoord2f(1.0f, 1.0f); glVertex3f(-2.50f, -2.50f, -2.50f);  // Top Right Of The Texture and Quad
+		glTexCoord2f(0.0f, 1.0f); glVertex3f(2.50f, -2.50f, -2.50f);  // Top Left Of The Texture and Quad
+		glTexCoord2f(0.0f, 0.0f); glVertex3f(2.50f, -2.50f, 2.50f);  // Bottom Left Of The Texture and Quad
+		glTexCoord2f(1.0f, 0.0f); glVertex3f(-2.50f, -2.50f, 2.50f);  // Bottom Right Of The Texture and Quad
+																	  // Right face
+		glTexCoord2f(1.0f, 0.0f); glVertex3f(2.50f, -2.50f, -2.50f);  // Bottom Right Of The Texture and Quad
+		glTexCoord2f(1.0f, 1.0f); glVertex3f(2.50f, 2.50f, -2.50f);  // Top Right Of The Texture and Quad
+		glTexCoord2f(0.0f, 1.0f); glVertex3f(2.50f, 2.50f, 2.50f);  // Top Left Of The Texture and Quad
+		glTexCoord2f(0.0f, 0.0f); glVertex3f(2.50f, -2.50f, 2.50f);  // Bottom Left Of The Texture and Quad
+																	 // Left Face
+		glTexCoord2f(0.0f, 0.0f); glVertex3f(-2.50f, -2.50f, -2.50f);  // Bottom Left Of The Texture and Quad
+		glTexCoord2f(1.0f, 0.0f); glVertex3f(-2.50f, -2.50f, 2.50f);  // Bottom Right Of The Texture and Quad
+		glTexCoord2f(1.0f, 1.0f); glVertex3f(-2.50f, 2.50f, 2.50f);  // Top Right Of The Texture and Quad
+		glTexCoord2f(0.0f, 1.0f); glVertex3f(-2.50f, 2.50f, -2.50f);  // Top Left Of The Texture and Quad
+		glEnd();
+			/*
+			glutSolidTeapot(size);*/
 		glPopMatrix();
 	}
 	//glPushMatrix();
@@ -644,14 +708,14 @@ void create_square(float x, float y, float size, int v) {
 void create_player(float size,float sq_size,float s_x, float s_y) {
 	float x = s_x + sq_size * player[1];
 	float y = s_y - sq_size * player[0];
-	//glColor3f(0.0f, 0.0f, 0.0f);
+	glColor3f(0.0f, 0.0f, 0.0f);
 	GLfloat player_mat_ambient_diffuse[] = { 1.0, 0.9, 1.0, 1.0 };
 	GLfloat player_mat_specular[] = { 1.0, 0.9, 1.0, 1.0 };
 
 	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, player_mat_ambient_diffuse);
 	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, player_mat_specular);
 	glPushMatrix();
-		glTranslatef(x, y, 0);
+		glTranslatef(x, y, 2);
 		glutSolidSphere(size, 50, 50);
 	glPopMatrix();
 }
@@ -659,14 +723,14 @@ void create_player(float size,float sq_size,float s_x, float s_y) {
 void create_trophy(float size, float sq_size, float s_x, float s_y) {
 	float x = s_x + sq_size * trophy[1];
 	float y = s_y - sq_size * trophy[0];
-	//glColor3f(50.0f, 0.0f, 100.0f);
+	glColor3f(50.0f, 0.0f, 100.0f);
 	GLfloat trophy_mat_ambient_diffuse[] = { 1.0, 0.0, 0.0, 1.0 };
 	GLfloat trophy_mat_specular[] = { 1.0, 0.0, 0.0, 1.0 };
 
 	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, trophy_mat_ambient_diffuse);
 	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, trophy_mat_specular);
 	glPushMatrix();
-		glTranslatef(x, y, 0);
+		glTranslatef(x, y, 2);
 		glutSolidSphere(size, 50, 50);
 	glPopMatrix();
 }
@@ -698,8 +762,8 @@ int main(int argc, char** argv){
 
 
 	// Load Shaders and Textures
-	//loadBumpyShader();
-	//loadShadowShader();
+	loadBumpyShader();
+	loadShadowShader();
 	loadTextureShader();
 	loadTextureWallShader();
 	loadTextureWalkShader();
@@ -713,7 +777,7 @@ int main(int argc, char** argv){
 	glHint(GL_PERSPECTIVE_CORRECTION_HINT,GL_NICEST);	
 	
 	glutDisplayFunc(renderScene);
-	glutIdleFunc(NULL);
+	glutIdleFunc(renderScene);
 	glutReshapeFunc(reshape);
 	glutKeyboardFunc(keyboard);							// Register The Keyboard Handler
 	glutSpecialFunc(special_keys);						// Register Special Keys Handler

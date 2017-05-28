@@ -1,9 +1,9 @@
 ﻿  main.cpp
-d:\dropbox\ucy\8o examino\epl426\assignments\project\remake\sampleshader\sample\sample\main.cpp(183): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+d:\dropbox\ucy\8o examino\epl426\assignments\project\remake\sampleshader\sample\sample\main.cpp(174): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
   c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\stdio.h(205): note: see declaration of 'fopen'
-d:\dropbox\ucy\8o examino\epl426\assignments\project\remake\sampleshader\sample\sample\main.cpp(364): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+d:\dropbox\ucy\8o examino\epl426\assignments\project\remake\sampleshader\sample\sample\main.cpp(355): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
   c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\stdio.h(205): note: see declaration of 'fopen'
-d:\dropbox\ucy\8o examino\epl426\assignments\project\remake\sampleshader\sample\sample\main.cpp(648): warning C4838: conversion from 'double' to 'GLfloat' requires a narrowing conversion
-d:\dropbox\ucy\8o examino\epl426\assignments\project\remake\sampleshader\sample\sample\main.cpp(649): warning C4838: conversion from 'double' to 'GLfloat' requires a narrowing conversion
+d:\dropbox\ucy\8o examino\epl426\assignments\project\remake\sampleshader\sample\sample\main.cpp(712): warning C4838: conversion from 'double' to 'GLfloat' requires a narrowing conversion
+d:\dropbox\ucy\8o examino\epl426\assignments\project\remake\sampleshader\sample\sample\main.cpp(713): warning C4838: conversion from 'double' to 'GLfloat' requires a narrowing conversion
   sample.vcxproj -> D:\Dropbox\Ucy\8o Examino\EPL426\Assignments\Project\remake\sampleshader\sample\Debug\sample.exe
   sample.vcxproj -> D:\Dropbox\Ucy\8o Examino\EPL426\Assignments\Project\remake\sampleshader\sample\Debug\sample.pdb (Full PDB)
