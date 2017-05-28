@@ -42,17 +42,17 @@ PFNGLATTACHOBJECTARBPROC         glAttachObjectARB        ;
 PFNGLLINKPROGRAMARBPROC          glLinkProgramARB         ;
 PFNGLGETUNIFORMLOCATIONARBPROC   glGetUniformLocationARB  ;
 PFNGLUNIFORM1IARBPROC            glUniform1iARB           ;
+PFNGLUNIFORM1FARBPROC            glUniform1fARB           ;
 PFNGLUNIFORM4FARBPROC            glUniform4fARB           ;
 PFNGLUNIFORM3FARBPROC            glUniform3fARB           ;
 //PFNGLACTIVETEXTUREARBPROC		  glActiveTextureARB;
 PFNGLGETINFOLOGARBPROC           glGetInfoLogARB          ;
 
-void getOpenGLFunctionPointers(void)
-{
+void getOpenGLFunctionPointers(void){
 	// FBO
-	glActiveTextureARB = (PFNGLACTIVETEXTUREARBPROC)wglGetProcAddress("glActiveTextureARB");
-	glGenFramebuffersEXT		= (PFNGLGENFRAMEBUFFERSEXTPROC)		wglGetProcAddress("glGenFramebuffersEXT");
-	glBindFramebufferEXT		= (PFNGLBINDFRAMEBUFFEREXTPROC)		wglGetProcAddress("glBindFramebufferEXT");
+	glActiveTextureARB			= (PFNGLACTIVETEXTUREARBPROC)wglGetProcAddress("glActiveTextureARB");
+	glGenFramebuffersEXT		= (PFNGLGENFRAMEBUFFERSEXTPROC)wglGetProcAddress("glGenFramebuffersEXT");
+	glBindFramebufferEXT		= (PFNGLBINDFRAMEBUFFEREXTPROC)wglGetProcAddress("glBindFramebufferEXT");
 	glFramebufferTexture2DEXT	= (PFNGLFRAMEBUFFERTEXTURE2DEXTPROC)wglGetProcAddress("glFramebufferTexture2DEXT");
 	glCheckFramebufferStatusEXT	= (PFNGLCHECKFRAMEBUFFERSTATUSEXTPROC)wglGetProcAddress("glCheckFramebufferStatusEXT");
 	
@@ -68,6 +68,7 @@ void getOpenGLFunctionPointers(void)
 	glLinkProgramARB = (PFNGLLINKPROGRAMARBPROC)wglGetProcAddress("glLinkProgramARB");
 	glGetUniformLocationARB = (PFNGLGETUNIFORMLOCATIONARBPROC)wglGetProcAddress("glGetUniformLocationARB");
 	glUniform1iARB = (PFNGLUNIFORM1IARBPROC)wglGetProcAddress("glUniform1iARB");
+	glUniform1fARB = (PFNGLUNIFORM1FARBPROC)wglGetProcAddress("glUniform1fARB");
 	glUniform4fARB = (PFNGLUNIFORM4FARBPROC)wglGetProcAddress("glUniform4fARB");
 	glUniform3fARB = (PFNGLUNIFORM3FARBPROC)wglGetProcAddress("glUniform3fARB");
 	
@@ -75,8 +76,8 @@ void getOpenGLFunctionPointers(void)
 #endif
 
 // Expressed as float so gluPerspective division returns a float and not 0 (640/480 != 640.0/480.0).
-#define RENDER_WIDTH 640.0
-#define RENDER_HEIGHT 480.0
+#define RENDER_WIDTH 1000.0		//640
+#define RENDER_HEIGHT 1000.0		// 480
 #define SHADOW_MAP_RATIO 2
 
 float aspect = 1;
@@ -102,15 +103,14 @@ GLuint fboId;
 // Z values will be rendered to this texture when using fboId framebuffer
 GLuint depthTextureId;
 
-// Use to activate/disable shadowShader
-GLhandleARB shadowShaderId;
+
 GLuint variablelocation;
 
 GLint loc;
 
 const int gametime = 120;	// in seconds
 const int arraysize = 11;	// initial maze size
-const int mazesize = arraysize * arraysize;	// maze size
+const int mazesize = arraysize * 5;	// maze size
 
 int player[2] =  { 6,0 };	// player starting position
 int trophy[2] ={ mazesize - 6, mazesize - 1 };
@@ -173,6 +173,60 @@ void reshape(int w, int h)
 	glLoadIdentity(); // Reset The Modelview Matrix
 	initLights();
 }
+/***************************** TEXTURES ***************************************************************/
+
+GLuint LoadTexture(const char * filename, int width, int height){
+	GLuint texture;
+	unsigned char * data;
+	FILE * file;
+	//The following code will read in our RAW file
+	file = fopen(filename, "rb");
+	if (file == NULL) return 0;
+	data = (unsigned char *)malloc(width * height * 3);
+	fread(data, width * height * 3, 1, file);
+	fclose(file);
+	glGenTextures(1, &texture); //generate the texture with the loaded
+	//data
+	glBindTexture(GL_TEXTURE_2D, texture); //bind the texture to it’s array
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE,
+	GL_MODULATE); // set texture environment parameters
+	//And if you go and use extensions, you can use Anisotropic filtering textures which are of an
+	//even better quality, but this will do for now.
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+	GL_LINEAR);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
+	GL_LINEAR);
+	//Here we are setting the parameter to repeat the texture instead of
+	//clamping the texture
+	//to the edge of our shape.
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	//Generate the texture
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB,
+	GL_UNSIGNED_BYTE, data);
+	free(data); //free the texture
+	return texture; //return whether it was successfull
+}
+
+
+void FreeTexture(GLuint texture){
+	glDeleteTextures(1, &texture);
+}
+
+
+GLuint roadTexture;
+GLuint roadTexture_location;
+void loadTextureWalkShader() {
+	roadTexture = LoadTexture("road_s.bmp",50,50);
+}
+
+GLuint wallTexture;
+GLuint wallTexture_location;
+void loadTextureWallShader() {
+	wallTexture = LoadTexture("wall_s.bmp",50,50);
+}
+
+/***************************** END TEXTURES ***************************************************************/
 
 bool init(void){
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);             // Pixel Storage Mode To Byte Alignment
@@ -201,36 +255,84 @@ void initLights(void) {
 
 
 bool maze[mazesize][mazesize];
+
+//makes maze by placing small mazes together
+//void makemaze() {
+//	
+//	//int side = 0;
+//
+//	//for (int i = 0; i < mazesize; i++) {
+//	//	for (int j = 0; j < mazesize; j++) {
+//	//		side = rand() % 4 + 1;
+//
+//	//		if (side == 1) {
+//	//			//	maze[i][j] = lilmaze[j % arraysize][i % arraysize];
+//	//			maze[i][j] = lilmaze[i % arraysize][j % arraysize];
+//	//		}
+//	//		else if (side == 2) {
+//	//			maze[i][j] = lilmaze[i % arraysize][j % arraysize];
+//	//		}
+//	//		else if (side == 3) {
+//	//			maze[i][j] = lilmaze[(mazesize)-(i % arraysize)][(mazesize)-(j % arraysize)];
+//	//		}
+//	//		else if (side == 4) {
+//	//			maze[i][j] = lilmaze[i % arraysize][j % arraysize];
+//	//		}
+//	//		//maze[i][j] = lilmaze[i % arraysize][j % arraysize];
+//
+//	//		if ((i == 0) || (i == mazesize)) {
+//	//			maze[i][j] = 1;
+//	//		}
+//	//		if ((j == 0) || (j == mazesize)) {
+//	//			maze[i][j] = 1;
+//	//		}
+//	//	}	
+//	//}
+//	// make all outer edges walls
+//	for (int i = 0; i < mazesize; i++) {
+//		maze[0][i] = 1;
+//		maze[i][0] = 1;
+//		maze[mazesize - 1][i] = 1;
+//		maze[i][mazesize - 1] = 1;
+//	}
+//	maze[6][0] = 0;										//start
+//	maze[mazesize - 6][mazesize - 1] = 0;				//finish
+//}
+
+void copylilmazevals(int side, int s, int e) {
+	int actualsize = arraysize - 1;
+	if ((s == mazesize - actualsize && e == mazesize - actualsize) || (s == 0 && e == 0)) {
+		side = 1;
+	}
+	for (int i = 0; i < arraysize; i++) {
+		int ti = i + s;
+		for (int j = 0; j < arraysize; j++) {
+			int tj = j + e;
+			if (side == 1) {
+				maze[ti][tj] = lilmaze[i][j];
+			}
+			else if (side == 2) {
+				maze[ti][tj] = lilmaze[actualsize - i][j];
+			}
+			else if (side == 3) {
+				maze[ti][tj] = lilmaze[actualsize - i][actualsize - j];
+			}
+			else if (side == 4) {
+				maze[ti][tj] = lilmaze[i][actualsize - j];
+			}
+		}
+	}
+}
+
 //makes maze by placing small mazes together
 void makemaze() {
 	int side = 0;
 
-	for (int i = 0; i < mazesize; i++) {
-		for (int j = 0; j < mazesize; j++) {
+	for (int i = 0; i < mazesize; i += arraysize) {
+		for (int j = 0; j < mazesize; j += arraysize) {
 			side = rand() % 4 + 1;
-
-			if (side == 1) {
-				//	maze[i][j] = lilmaze[j % arraysize][i % arraysize];
-				maze[i][j] = lilmaze[i % arraysize][j % arraysize];
-			}
-			else if (side == 2) {
-				maze[i][j] = lilmaze[i % arraysize][j % arraysize];
-			}
-			else if (side == 3) {
-				maze[i][j] = lilmaze[(mazesize)-(i % arraysize)][(mazesize)-(j % arraysize)];
-			}
-			else if (side == 4) {
-				maze[i][j] = lilmaze[i % arraysize][j % arraysize];
-			}
-			//maze[i][j] = lilmaze[i % arraysize][j % arraysize];
-
-			if ((i == 0) || (i == mazesize)) {
-				maze[i][j] = 1;
-			}
-			if ((j == 0) || (j == mazesize)) {
-				maze[i][j] = 1;
-			}
-		}	
+			copylilmazevals(side, i, j);
+		}
 	}
 	// make all outer edges walls
 	for (int i = 0; i < mazesize; i++) {
@@ -244,8 +346,7 @@ void makemaze() {
 }
 
 // Loading shader function
-GLhandleARB loadShader(char* filename, unsigned int type)
-{
+GLhandleARB loadShader(char* filename, unsigned int type){
 	FILE *pfile;
 	GLhandleARB handle;
 	const GLcharARB* files[1];
@@ -318,57 +419,63 @@ GLhandleARB loadShader(char* filename, unsigned int type)
 	return handle;
 }
 
-void loadShadowShader()
-{
+GLhandleARB bumpyShaderId;
+void loadBumpyShader(){
 	GLhandleARB vertexShaderHandle;
 	GLhandleARB fragmentShaderHandle;
 	
-	vertexShaderHandle   = loadShader("VertexShader_ori.c",GL_VERTEX_SHADER);
-	fragmentShaderHandle = loadShader("FragmentShader_ori.c",GL_FRAGMENT_SHADER);
+	vertexShaderHandle   = loadShader("VertexShader.c",GL_VERTEX_SHADER);
+	fragmentShaderHandle = loadShader("FragmentShader.c",GL_FRAGMENT_SHADER);
 	
+	bumpyShaderId = glCreateProgramObjectARB();
+	
+	glAttachObjectARB(bumpyShaderId,vertexShaderHandle);
+	glAttachObjectARB(bumpyShaderId,fragmentShaderHandle);
+	glLinkProgramARB(bumpyShaderId);
+
+	
+}
+GLhandleARB shadowShaderId;
+void loadShadowShader() {
+	GLhandleARB vertexShaderHandle;
+	GLhandleARB fragmentShaderHandle;
+
+	vertexShaderHandle = loadShader("VertexShader_ori.c", GL_VERTEX_SHADER);
+	fragmentShaderHandle = loadShader("FragmentShader_ori.c", GL_FRAGMENT_SHADER);
+
 	shadowShaderId = glCreateProgramObjectARB();
-	
-	glAttachObjectARB(shadowShaderId,vertexShaderHandle);
-	glAttachObjectARB(shadowShaderId,fragmentShaderHandle);
+
+	glAttachObjectARB(shadowShaderId, vertexShaderHandle);
+	glAttachObjectARB(shadowShaderId, fragmentShaderHandle);
 	glLinkProgramARB(shadowShaderId);
-
-	//setup uniform here
 }
 
 
+GLuint texture;
+GLuint texture_location;
+GLhandleARB textureShaderId;
+void loadTextureShader(){
+	GLhandleARB vertexShaderHandle;
+	GLhandleARB fragmentShaderHandle;
 
-void setupMatrices(float position_x,float position_y,float position_z,float lookAt_x,float lookAt_y,float lookAt_z)
-{
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	gluPerspective(45,RENDER_WIDTH/RENDER_HEIGHT,10,600.0);
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-	gluLookAt(position_x,position_y,position_z,lookAt_x,lookAt_y,lookAt_z,0,1,0);
+	vertexShaderHandle = loadShader("TextureVertexShader.c", GL_VERTEX_SHADER);
+	fragmentShaderHandle = loadShader("TextureFragmentShader.c", GL_FRAGMENT_SHADER);
+
+
+	textureShaderId = glCreateProgramObjectARB();
+
+	glAttachObjectARB(textureShaderId, vertexShaderHandle);
+	glAttachObjectARB(textureShaderId, fragmentShaderHandle);
+
+	glLinkProgramARB(textureShaderId);
+
 }
-
-
-// This update only change the position of the light.
-//int elapsedTimeCounter = 0;
-void update(void)
-{
-	
-	p_light[0] = light_mvnt * cos(glutGet(GLUT_ELAPSED_TIME)/1000.0);
-	p_light[2] = light_mvnt * sin(glutGet(GLUT_ELAPSED_TIME)/1000.0);
-	
-	//p_light[0] = light_mvnt * cos(3652/1000.0);
-	//p_light[2] = light_mvnt * sin(3652/1000.0);
-}
-
-
 
 
 // Our Rendering Is Done Here
 int timer = 0;
 int temp_time = 0;
 void renderScene(void){
-
-	//update();
 
 	
 	glViewport(0,0,RENDER_WIDTH,RENDER_HEIGHT);
@@ -395,15 +502,8 @@ void renderScene(void){
 
 	// Clear previous frame values
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	//Using the shadow shader
 	glUseProgramObjectARB(shadowShaderId);
 
-	//setup uniform value here
-	
-	// setupMatrices(p_camera[0],p_camera[1],p_camera[2],l_camera[0],l_camera[1],l_camera[2]);
-	
-	//glCullFace(GL_BACK);
 	float s_x = -300.0;	// starting x position of maze bottom-left
 	float s_y = 300.0;	// starting y position of maze bottom-left
 	float size = 5.0;		// size of each cube of maze;
@@ -417,16 +517,15 @@ void renderScene(void){
 		glTranslatef(0, 0, -52);
 		glutSolidCube(100);
 	glPopMatrix();*/
-
-	for (int i = 0; i < arraysize*arraysize; i++) {
-		for (int j = 0; j < arraysize*arraysize; j++) {
+	glUseProgramObjectARB(textureShaderId);
+	for (int i = 0; i < mazesize; i++) {
+		for (int j = 0; j < mazesize; j++) {
 			float sq_x = s_x + size * j;	// this square x position
 			float sq_y = s_y - size * i;	// this square y position
 			create_square(sq_x, sq_y, size, maze[i][j]);
 		}
 	}
-	create_player(p_size,size,s_x,s_y);
-	create_trophy(t_size, size, s_x, s_y);
+	
 
 	const int time_per_cube = 10;
 
@@ -439,15 +538,15 @@ void renderScene(void){
 		
 		create_timeblock(tb_x, tb_y,tb_size);
 	}
-	
-
+	glUseProgramObjectARB(bumpyShaderId);
+	create_player(p_size,size,s_x,s_y);
+	create_trophy(t_size, size, s_x, s_y);
 	
 	glutSwapBuffers();
 }
 
 // Our Keyboard Handler (Normal Keys)
-void keyboard(unsigned char key, int x, int y)
-{
+void keyboard(unsigned char key, int x, int y){
 	//printf("%c", key);
 	switch (key) {
 		case 'w':
@@ -469,8 +568,7 @@ void keyboard(unsigned char key, int x, int y)
 }
 
 // Our Keyboard Handler For Special Keys (Like Arrow Keys And Function Keys)
-void special_keys(int a_keys, int x, int y)
-{
+void special_keys(int a_keys, int x, int y){
 	//printf("key: %d x: %d y: %d", a_keys, x, y);
 	//printf("key: %d", maze[player[0]][player[1] + 1]);
 
@@ -517,28 +615,36 @@ void special_keys(int a_keys, int x, int y)
 
 void create_square(float x, float y, float size, int v) {
 	if (v == 1) { // wall
-		glColor3f(100.0f, 0.0f, 0.0f);
+		wallTexture_location = glGetUniformLocationARB(textureShaderId, "myTexture");
+		glActiveTextureARB(GL_TEXTURE0);
+		glUniform1fARB(wallTexture_location, 0);
+		glBindTexture(GL_TEXTURE_2D, wallTexture);
+		//glColor3f(100.0f, 0.0f, 0.0f);
 		glPushMatrix();
 			glTranslatef(x, y, -1);
-			glutSolidCube(size);
+			glutSolidTeapot(size);
 		glPopMatrix();
 	}
 	else { // walking space
-		glColor3f(0.0f, 100.0f, 0.0f);
+		//glColor3f(0.0f, 100.0f, 0.0f);
+		roadTexture_location = glGetUniformLocationARB(textureShaderId, "myTexture");
+		glActiveTextureARB(GL_TEXTURE0);
+		glUniform1fARB(roadTexture_location, 0);
+		glBindTexture(GL_TEXTURE_2D, roadTexture);
 		glPushMatrix();
 			glTranslatef(x, y, -2);
-			glutSolidCube(size);
+			glutSolidTeapot(size);
 		glPopMatrix();
 	}
-	glPushMatrix();
-		glTranslatef(x, y, -1);
-		glutSolidCube(size);
-	glPopMatrix();
+	//glPushMatrix();
+	//	glTranslatef(x, y, -1);
+	//	glutSolidCube(size);
+	//glPopMatrix();
 }
 void create_player(float size,float sq_size,float s_x, float s_y) {
 	float x = s_x + sq_size * player[1];
 	float y = s_y - sq_size * player[0];
-	glColor3f(0.0f, 0.0f, 0.0f);
+	//glColor3f(0.0f, 0.0f, 0.0f);
 	GLfloat player_mat_ambient_diffuse[] = { 1.0, 0.9, 1.0, 1.0 };
 	GLfloat player_mat_specular[] = { 1.0, 0.9, 1.0, 1.0 };
 
@@ -553,7 +659,7 @@ void create_player(float size,float sq_size,float s_x, float s_y) {
 void create_trophy(float size, float sq_size, float s_x, float s_y) {
 	float x = s_x + sq_size * trophy[1];
 	float y = s_y - sq_size * trophy[0];
-	glColor3f(50.0f, 0.0f, 100.0f);
+	//glColor3f(50.0f, 0.0f, 100.0f);
 	GLfloat trophy_mat_ambient_diffuse[] = { 1.0, 0.0, 0.0, 1.0 };
 	GLfloat trophy_mat_specular[] = { 1.0, 0.0, 0.0, 1.0 };
 
@@ -566,7 +672,7 @@ void create_trophy(float size, float sq_size, float s_x, float s_y) {
 }
 
 void create_timeblock(float x, float y, float size) {
-	glColor3f(0.0f, 0.0f, 100.0f);
+	//glColor3f(0.0f, 0.0f, 100.0f);
 	glPushMatrix();
 		glTranslatef(x, y, 0);
 		glutSolidCube(size);
@@ -574,12 +680,13 @@ void create_timeblock(float x, float y, float size) {
 }
 
 
-int main(int argc, char** argv)
-{
+int main(int argc, char** argv){
 	glutInit(&argc, argv);
-	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_ALPHA | GLUT_DEPTH);
+	srand(time(NULL));
 	makemaze();
-	glutInitWindowPosition(100,100);
+
+	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_ALPHA | GLUT_DEPTH);
+	glutInitWindowPosition(400,50);
 	glutInitWindowSize(RENDER_WIDTH,RENDER_HEIGHT);
 	glutCreateWindow("EPL 426 Maze");
 	
@@ -589,7 +696,14 @@ int main(int argc, char** argv)
 	getOpenGLFunctionPointers();
 #endif
 
-	loadShadowShader();
+
+	// Load Shaders and Textures
+	//loadBumpyShader();
+	//loadShadowShader();
+	loadTextureShader();
+	loadTextureWallShader();
+	loadTextureWalkShader();
+
 
 	glEnable(GL_DEPTH_TEST);
 	glClearColor(0.0f, 1.0f, 1.0f, 0.5f);			   // bluish background (CHANGED)
@@ -599,7 +713,7 @@ int main(int argc, char** argv)
 	glHint(GL_PERSPECTIVE_CORRECTION_HINT,GL_NICEST);	
 	
 	glutDisplayFunc(renderScene);
-	glutIdleFunc(renderScene);
+	glutIdleFunc(NULL);
 	glutReshapeFunc(reshape);
 	glutKeyboardFunc(keyboard);							// Register The Keyboard Handler
 	glutSpecialFunc(special_keys);						// Register Special Keys Handler

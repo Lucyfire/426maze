@@ -23,7 +23,7 @@ const float epsilon = 0.001;
 
 const int gametime = 120;	// in seconds
 const int arraysize = 11;	// initial maze size
-const int mazesize = arraysize * arraysize;	// maze size
+const int mazesize = arraysize * 5;	// maze size
 /*
 int player[2] = { 1,1 };	// player starting position
 int trophy[2] = { mazesize - 2,mazesize - 2 };
@@ -49,39 +49,42 @@ bool lilmaze[arraysize][arraysize] = {
 	{ 1,0,1,0,1,0,1,0,1,0,1 },//11
 };
 
-
-
 bool maze[mazesize][mazesize];
+
+void copylilmazevals(int side, int s, int e) {
+	int actualsize = arraysize - 1;
+	if ((s == mazesize - actualsize && e == mazesize - actualsize) || (s == 0 && e==0)) {
+		side = 1;
+	}
+	for (int i = 0; i < arraysize; i++) {
+		int ti = i + s;
+		for (int j = 0; j < arraysize; j++) {
+			int tj = j + e;
+			if (side == 1) {
+				maze[ti][tj] = lilmaze[i][j];
+			}
+			else if (side == 2) {
+				maze[ti][tj] = lilmaze[actualsize - i][j];
+			}
+			else if (side == 3) {
+				maze[ti][tj] = lilmaze[actualsize - i][actualsize - j];
+			}
+			else if (side == 4) {
+				maze[ti][tj] = lilmaze[i][actualsize - j];
+			}
+		}
+	}
+}
+
 //makes maze by placing small mazes together
 void makemaze() {
 	int side = 0;
 
-	for (int i = 0; i < mazesize; i++) {
-		for (int j = 0; j < mazesize; j++) {
+	for (int i = 0; i < mazesize; i += arraysize) {
+		for (int j = 0; j < mazesize; j += arraysize) {
 			side = rand() % 4 + 1;
-
-			if (side == 1) {
-				//	maze[i][j] = lilmaze[j % arraysize][i % arraysize];
-				maze[i][j] = lilmaze[i % arraysize][j % arraysize];
-			}
-			else if (side == 2) {
-				maze[i][j] = lilmaze[i % arraysize][j % arraysize];
-			}
-			else if (side == 3) {
-				maze[i][j] = lilmaze[(mazesize)-(i % arraysize)][(mazesize)-(j % arraysize)];
-			}
-			else if (side == 4) {
-				maze[i][j] = lilmaze[i % arraysize][j % arraysize];
-			}
-			//maze[i][j] = lilmaze[i % arraysize][j % arraysize];
-
-			if ((i == 0) || (i == mazesize)) {
-				maze[i][j] = 1;
-			}
-			if ((j == 0) || (j == mazesize)) {
-				maze[i][j] = 1;
-			}
-		}	
+			copylilmazevals(side, i, j);
+		}
 	}
 	// make all outer edges walls
 	for (int i = 0; i < mazesize; i++) {
@@ -386,8 +389,8 @@ void render(void)
 		glutSolidCube(100);
 	glPopMatrix();*/
 
-	for (int i = 0; i < arraysize*arraysize; i++) {
-		for (int j = 0; j < arraysize*arraysize; j++) {
+	for (int i = 0; i < mazesize; i++) {
+		for (int j = 0; j < mazesize; j++) {
 			float sq_x = s_x + size * j;	// this square x position
 			float sq_y = s_y - size * i;	// this square y position
 			create_square(sq_x, sq_y, size, maze[i][j]);

@@ -1,16 +1,13 @@
-
-
-
-varying float NL; //pass this to the fragment shader
-
-
-void main()
+varying vec3 N;
+varying vec3 L;
+varying vec3 v;
+varying float pattern;             
+const vec3 lightPos = vec3(0.0,5.0,5.0); // make this uniform
+void main(void)
 {
-	gl_Position = ftransform();                  //perform transformations for currect vertex
-	vec3 normal = gl_NormalMatrix * gl_Normal;   //get the current normal
-	vec3 light = vec3(100.0, 100.0, 0.0);          //hard coded light position
-	NL = dot(normal, normalize(light));         //N dot L
-	gl_FrontColor = gl_Color;                    //pass current color to the fragment shader
+   v = vec3(gl_ModelViewMatrix * gl_Vertex);
+   L = normalize(lightPos - v);
+   N = normalize(gl_NormalMatrix * gl_Normal);
+   pattern=fract(4.0*(gl_Vertex.y+gl_Vertex.x+gl_Vertex.z));
+   gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
 }
-
-
